@@ -1,4 +1,5 @@
-from fastapi import FastAPI,HTTPException
+from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 app=FastAPI()
 dict_={}
@@ -13,8 +14,10 @@ def postings(data_:data):
         return {'detail':'update successfull'}
     return {'detail':'key already exist'}
     
-@app.get('/url_/{id}')
-def getting_data(id:int):
+
+
+@app.get('/abc/{id}:',response_class=RedirectResponse)
+def redirect(id:int)->RedirectResponse:
     if id in dict_.keys():
         return dict_[id]
     return {'detail':'id not found'}
