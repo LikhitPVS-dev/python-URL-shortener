@@ -1,6 +1,0 @@
-[
-    {
-        "0": "https://datalemur.com/sql-tutorial/sql-division",
-        "click": 0
-    }
-]

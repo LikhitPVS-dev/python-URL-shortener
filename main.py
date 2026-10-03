@@ -1,4 +1,4 @@
-from fastapi import FastAPI,HTTPException
+from fastapi import FastAPI,Response
 from fastapi.responses import RedirectResponse,JSONResponse
 from pydantic import BaseModel
 import json
@@ -23,17 +23,17 @@ def postings(data_:data):
         json.dump(dict_,file,indent=4)
     
 @app.get('/abc/{id}',response_class=RedirectResponse,status_code=307)
-def redirect(id:str):
+def redirect(id:str)->Response:
     try:
         with open(path,'r') as file:
             dic=(json.load(file))
         flag=False
         for i in dic:
             if (id) in i.keys():
-                i['click']=+1
+                i['click']+=1
                 flag=True
                 return i[(id)]
         if not flag:
-            return {'detail':'id not found'}
+            return JSONResponse(content='id not found')
     except json.decoder.JSONDecodeError:
-        return {'detail':'no data yet'}
+        return JSONResponse(content='no data added')
