@@ -1,27 +1,39 @@
-from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI,HTTPException
+from fastapi.responses import RedirectResponse,JSONResponse
 from pydantic import BaseModel
 import json
-path='data.json'
+path='data.txt'
 app=FastAPI()
-dict_={}
+
 class data(BaseModel):
-    id:int
+    id:str
     url:str
 @app.post('/url_/')
 def postings(data_:data):
-    data_dict=data_.model_dump()
-    if data_.id not in dict_.keys():
-        dict_[data_.id]=data_dict['url']
-        with open(path,'w') as file:
-            json.dump(dict_,file,indent=4)
-        return {'detail':'update successfull'}
-    return {'detail':'key already exist'}
-@app.get('/abc/{id}',response_class=RedirectResponse)
-def redirect(id:int)->RedirectResponse :
-    with open(path,'r') as file:
-        dict_.update(json.load(file))
-    if id in [int(i) for i in dict_.keys()]:
-        return dict_[str(id)]
-    return {'detail':'id not found'}
-
+    data_pass={data_.id:data_.url,'click':0}
+    with open (path,'r') as file:
+        try:
+            dict_=json.load(file)
+            dict_.append(data_pass)
+            
+        except json.decoder.JSONDecodeError:
+            dict_=[]
+            dict_.append(data_pass)
+    with open(path,'w') as file:
+        json.dump(dict_,file,indent=4)
+    
+@app.get('/abc/{id}',response_class=RedirectResponse,status_code=307)
+def redirect(id:str):
+    try:
+        with open(path,'r') as file:
+            dic=(json.load(file))
+        flag=False
+        for i in dic:
+            if (id) in i.keys():
+                i['click']=+1
+                flag=True
+                return i[(id)]
+        if not flag:
+            return {'detail':'id not found'}
+    except json.decoder.JSONDecodeError:
+        return {'detail':'no data yet'}
