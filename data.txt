@@ -1,0 +1,7 @@
+[
+    {
+        "string": "https://aniwaves.ru/watch/black-clover-2nd-season-82769/ep-1",
+        "click": 2,
+        "date": "2026-10-04"
+    }
+]

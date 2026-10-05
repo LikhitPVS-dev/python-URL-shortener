@@ -1,39 +1,52 @@
-from fastapi import FastAPI,Response
+from fastapi import FastAPI,Response,HTTPException
 from fastapi.responses import RedirectResponse,JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel,HttpUrl
+import datetime
 import json
 path='data.txt'
 app=FastAPI()
 
 class data(BaseModel):
     id:str
-    url:str
-@app.post('/url_/')
-def postings(data_:data):
-    data_pass={data_.id:data_.url,'click':0}
-    with open (path,'r') as file:
-        try:
-            dict_=json.load(file)
-            dict_.append(data_pass)
-            
-        except json.decoder.JSONDecodeError:
-            dict_=[]
-            dict_.append(data_pass)
-    with open(path,'w') as file:
-        json.dump(dict_,file,indent=4)
+    url:HttpUrl
     
-@app.get('/abc/{id}',response_class=RedirectResponse,status_code=307)
+@app.post('/links/')
+def postings(data_:data):
+        
+        data_pass={data_.id:str(data_.url),'click':0,'date':str(datetime.date.today())}        
+        with open (path,'r') as file:
+            try:
+                dict_=json.load(file)
+                dict_.append(data_pass)
+            except json.decoder.JSONDecodeError:
+                dict_=[]
+                dict_.append(data_pass)
+        
+        with open(path,'w') as file:
+            json.dump(dict_,file,indent=4)
+            short_url=f'http://127.0.0.1:8000/code/{data_.id}'
+            return {'short-url':short_url}
+        #raise HTTPException(status_code=422,detail='invalid url')
+        
+    
+@app.get('/code/{id}',response_class=RedirectResponse,status_code=307)
 def redirect(id:str)->Response:
-    try:
-        with open(path,'r') as file:
-            dic=(json.load(file))
-        flag=False
-        for i in dic:
-            if (id) in i.keys():
-                i['click']+=1
-                flag=True
-                return i[(id)]
-        if not flag:
-            return JSONResponse(content='id not found')
-    except json.decoder.JSONDecodeError:
-        return JSONResponse(content='no data added')
+        if  id==None:
+            return JSONResponse(content='invalid url')
+        try:
+            with open(path,'r') as file:
+                dic=(json.load(file))
+            flag=True
+            for i in dic:
+                if (id) in i.keys():
+                    i['click']+=1
+                    flag=False
+                    with open (path,'w') as file:
+                        json.dump(dic,file,indent=4)
+                    return i[(id)]
+            
+            if flag:
+                return JSONResponse(content='id not found',status_code=404)
+        except json.decoder.JSONDecodeError:
+            return JSONResponse(content='no data added')
+  
