@@ -13,7 +13,7 @@ class data(BaseModel):
 @app.post('/links/')
 def postings(data_:data):
         
-        data_pass={data_.id:str(data_.url),'click':0,'date':str(datetime.date.today())}        
+        data_pass={'id':data_.id,'url':str(data_.url),'click':0,'date':str(datetime.date.today())}        
         with open (path,'r') as file:
             try:
                 dict_=json.load(file)
@@ -31,22 +31,26 @@ def postings(data_:data):
     
 @app.get('/code/{id}',response_class=RedirectResponse,status_code=307)
 def redirect(id:str)->Response:
-        if  id==None:
-            return JSONResponse(content='invalid url')
         try:
             with open(path,'r') as file:
                 dic=(json.load(file))
-            flag=True
             for i in dic:
-                if (id) in i.keys():
+                if i['id']==id:
                     i['click']+=1
-                    flag=False
                     with open (path,'w') as file:
                         json.dump(dic,file,indent=4)
-                    return i[(id)]
-            
-            if flag:
-                return JSONResponse(content='id not found',status_code=404)
+                    return i[('url')]
+            raise HTTPException(status_code=404,detail='{id} not found') 
         except json.decoder.JSONDecodeError:
             return JSONResponse(content='no data added')
-  
+@app.get('/links/code/stats/{id}')
+def stats(id : str):
+    with open(path,'r') as file:
+        dic=json.load(file)
+    for i in dic:
+        if i['id']==id:
+            return {'original url':i['url'],'date added':i['date']}
+    raise HTTPException(status_code=404,detail=f'id {id} not found') 
+
+         
+     
