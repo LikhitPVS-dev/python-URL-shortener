@@ -51,6 +51,17 @@ def stats(id : str):
         if i['id']==id:
             return {'original url':i['url'],'date added':i['date']}
     raise HTTPException(status_code=404,detail=f'id {id} not found') 
+@app.post('/links/code/{id}')
+def delete(id : str):
+    with open(path,'r') as file :
+        dic=json.load(file)
+    for i in dic:
+        if i['id']==id:
+            del dic[dic.index(i)]
+            with open(path,'w') as file:
+                json.dump(dic,file,indent=4)
+            return {'detail':'data deletion sucessful'}
 
+    raise HTTPException(status_code=404,detail=f'id {id} not found')
          
      
